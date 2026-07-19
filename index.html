@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>StudyBot — Ultra Premium Mini App</title>
+  
+  <!-- Telegram WebApp SDK & Supabase JS -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: rgba(22, 30, 49, 0.65);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-glow: rgba(59, 130, 246, 0.12);
+      
+      --primary: #3b82f6;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #3b82f6 50%, #8b5cf6 100%);
+      --accent-emerald: #10b981;
+      --accent-orange: #f97316;
+      --accent-rose: #f43f5e;
+      --accent-purple: #a855f7;
+      
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 16px 16px 90px 16px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Animated Glow Orbs in Background */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.45;
+      animation: floatOrb 10s ease-in-out infinite alternate;
+    }
+
+    .glow-orb-1 {
+      width: 260px;
+      height: 260px;
+      background: #4f46e5;
+      top: -40px;
+      left: -40px;
+    }
+
+    .glow-orb-2 {
+      width: 280px;
+      height: 280px;
+      background: #8b5cf6;
+      bottom: 10%;
+      right: -60px;
+      animation-delay: -5s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(25px, 35px) scale(1.12); }
+    }
+
+    /* Top Glass Profile Header */
+    .profile-hero {
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: var(--primary-gradient);
+    }
+
+    .profile-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .user-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+    }
+
+    .avatar-box {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 800;
+      color: white;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .online-indicator {
+      width: 13px;
+      height: 13px;
+      background: var(--accent-emerald);
+      border: 2.5px solid #0f172a;
+      border-radius: 50%;
+      position: absolute;
+      bottom: -2px; right: -2px;
+      box-shadow: 0 0 10px var(--accent-emerald);
+    }
+
+    .user-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-top: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .streak-box {
+      background: rgba(249, 115, 22, 0.12);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      border-radius: 16px;
+      padding: 8px 14px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+    }
+
+    .streak-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent-orange);
+      line-height: 1;
+    }
+
+    .streak-sub {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* XP Progress Bar in Profile */
+    .xp-progress-container {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .xp-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .xp-bar-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .xp-bar-fill {
+      height: 100%;
+      width: 65%;
+      background: var(--primary-gradient);
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Quick Stats 2x2 Grid */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      position: relative;
+      transition: transform 0.2s ease, border-color 0.2s;
+    }
+
+    .glass-card:active {
+      transform: scale(0.98);
+    }
+
+    .stat-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .stat-number {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    .stat-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* Weekly Goal Widget */
+    .weekly-goal-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      padding: 18px;
+      margin-bottom: 24px;
+      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
+    }
+
+    .goal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .goal-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .goal-percent {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--accent-emerald);
+      background: rgba(16, 185, 129, 0.12);
+      padding: 3px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .goal-track {
+      width: 100%;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .goal-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+      border-radius: 12px;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.5);
+      transition: width 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Section Filters Pill Row */
+    .filter-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+
+    .filter-scroll::-webkit-scrollbar { display: none; }
+
+    .pill-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .pill-btn.active {
+      background: var(--primary-gradient);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+
+    /* Tasks List Container */
+    .task-card-premium {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .task-card-premium:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.15);
+    }
+
+    .task-main-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .task-left-content {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+    }
+
+    /* Custom Animated Checkbox */
+    .custom-checkbox {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      flex-shrink: 0;
+    }
+
+    .custom-checkbox.checked {
+      background: var(--accent-emerald);
+      border-color: var(--accent-emerald);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+    }
+
+    .custom-checkbox.checked::after {
+      content: '✓';
+      color: white;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .task-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+      transition: color 0.2s;
+    }
+
+    .task-text.completed-text {
+      text-decoration: line-through;
+      color: var(--text-dim);
+    }
+
+    .prio-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .prio-high {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .prio-medium {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .prio-low {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* Subtasks Accordion Inside Card */
+    .subtasks-wrapper {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .subtask-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+
+    .sub-check-box {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .sub-check-box.checked {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .sub-check-box.checked::after {
+      content: '✓';
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* Study Timer Card (Focus Mode) */
+    .timer-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .timer-display {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 16px 0;
+    }
+
+    .timer-btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .timer-action-btn {
+      padding: 12px 24px;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .timer-action-btn:active { transform: scale(0.95); }
+
+    .btn-start { background: var(--accent-emerald); color: white; }
+    .btn-pause { background: var(--accent-orange); color: white; }
+    .btn-reset { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
+
+    /* Bottom Floating Dock Bar */
+    .bottom-dock {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+    }
+
+    .dock-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .dock-tab.active {
+      color: white;
+      background: rgba(99, 102, 241, 0.2);
+    }
+
+    .dock-icon {
+      font-size: 20px;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Skeleton Loading State */
+    .skeleton-box {
+      height: 70px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 18px;
+      margin-bottom: 12px;
+      animation: pulseSkeleton 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulseSkeleton {
+      0% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.4; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow Background Orbs -->
+  <div class="glow-orb glow-orb-1"></div>
+  <div class="glow-orb glow-orb-2"></div>
+
+  <!-- Profile Hero Banner -->
+  <div class="profile-hero">
+    <div class="profile-row">
+      <div class="user-meta">
+        <div class="avatar-wrapper">
+          <div class="avatar-box" id="userAvatar">S</div>
+          <div class="online-indicator"></div>
+        </div>
+        <div>
+          <div class="user-title" id="userName">Student</div>
+          <div class="level-badge" id="userLevel">💎 Level 1 Scholar</div>
+        </div>
+      </div>
+      <div class="streak-box">
+        <div class="streak-val" id="streakCount">🔥 0</div>
+        <div class="streak-sub">Days</div>
+      </div>
+    </div>
+
+    <div class="xp-progress-container">
+      <div class="xp-labels">
+        <span>Level Progress</span>
+        <span id="xpText">0 / 100 XP</span>
+      </div>
+      <div class="xp-bar-track">
+        <div class="xp-bar-fill" id="xpBarFill" style="width: 0%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Views Container -->
+  <div id="viewTasks" class="tab-content active">
+
+    <!-- Quick Stats Grid -->
+    <div class="stats-row">
+      <div class="glass-card">
+        <span class="stat-icon">⚡</span>
+        <div class="stat-number" id="totalXpVal">0</div>
+        <div class="stat-desc">Total XP Earned</div>
+      </div>
+      <div class="glass-card">
+        <span class="stat-icon">🎯</span>
+        <div class="stat-number" id="tasksDoneVal">0</div>
+        <div class="stat-desc">Tasks Completed</div>
+      </div>
+    </div>
+
+    <!-- Weekly Target Progress Card -->
+    <div class="weekly-goal-card">
+      <div class="goal-top">
+        <span class="goal-title">🎯 Weekly Target Goal</span>
+        <span class="goal-percent" id="goalPctText">0%</span>
+      </div>
+      <div class="goal-track">
+        <div class="goal-fill" id="goalFillBar"></div>
+      </div>
+    </div>
+
+    <!-- Filter Pills Row -->
+    <div class="filter-scroll">
+      <button class="pill-btn active" onclick="filterTasks('all', this)">All Tasks</button>
+      <button class="pill-btn" onclick="filterTasks('high', this)">🔴 High Priority</button>
+      <button class="pill-btn" onclick="filterTasks('recurring', this)">🔄 Routines</button>
+      <button class="pill-btn" onclick="filterTasks('completed', this)">✅ Done</button>
+    </div>
+
+    <!-- Task List Container -->
+    <div id="taskList">
+      <div class="skeleton-box"></div>
+      <div class="skeleton-box"></div>
+      <div class="skeleton-box"></div>
+    </div>
+
+  </div>
+
+  <!-- Study Timer View -->
+  <div id="viewTimer" class="tab-content">
+    <div class="timer-container">
+      <h2 style="font-size: 20px; font-weight: 700;">⏱️ Focus Study Timer</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Pomodoro Focus Session</p>
+      
+      <div class="timer-display" id="timerDisplay">25:00</div>
+
+      <div class="timer-btn-row">
+        <button class="timer-action-btn btn-start" id="btnStartTimer" onclick="toggleTimer()">▶ Start</button>
+        <button class="timer-action-btn btn-reset" onclick="resetTimer()">🔄 Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard View -->
+  <div id="viewRank" class="tab-content">
+    <div class="glass-card" style="margin-bottom: 14px; text-align: center;">
+      <h2 style="font-size: 18px; font-weight: 700;">🏆 Student Leaderboard</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Top active study champions</p>
+    </div>
+    <div id="leaderboardList">
+      <div class="skeleton-box"></div>
+      <div class="skeleton-box"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Floating Dock Navigation -->
+  <div class="bottom-dock">
+    <div class="dock-tab active" onclick="switchTab('viewTasks', this)">
+      <span class="dock-icon">📋</span>
+      <span>Tasks</span>
+    </div>
+    <div class="dock-tab" onclick="switchTab('viewTimer', this)">
+      <span class="dock-icon">⏱️</span>
+      <span>Timer</span>
+    </div>
+    <div class="dock-tab" onclick="switchTab('viewRank', this)">
+      <span class="dock-icon">🏆</span>
+      <span>Rankings</span>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Telegram WebApp SDK
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // Supabase Configuration
+    const SUPABASE_URL = "https://kgfbwcchftywjhkdqqxn.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnZmJ3Y2NoZnR5d2poa2RxcXhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4MjYxNjMsImV4cCI6MjA5OTQwMjE2M30.LwpTocZwf-0SayLgQgRP974-d5VlRy2OiGRUVrj_Gm0";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let userId = 5774713642; // Default fallback ID
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      const u = tg.initDataUnsafe.user;
+      userId = u.id;
+      document.getElementById('userName').innerText = u.first_name || 'Student';
+      document.getElementById('userAvatar').innerText = (u.first_name || 'S')[0].toUpperCase();
+    }
+
+    let allTasksData = [];
+    let allSubtasksData = [];
+
+    // Trigger Telegram Haptic Vibration Feedback
+    function haptic() {
+      try {
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+      } catch(e) {}
+    }
+
+    async function loadDashboard() {
+      try {
+        // Fetch XP & Level
+        const { data: xp } = await supabaseClient.from('user_xp').select('*').eq('user_id', userId).single();
+        if (xp) {
+          document.getElementById('totalXpVal').innerText = (xp.total_xp || 0).toLocaleString();
+          document.getElementById('userLevel').innerText = `💎 Level ${xp.level || 1} Scholar`;
+          const currentXp = xp.total_xp || 0;
+          const nextLevelXp = (xp.level || 1) * 100;
+          const pct = Math.min((currentXp / nextLevelXp) * 100, 100);
+          document.getElementById('xpBarFill').style.width = `${pct}%`;
+          document.getElementById('xpText').innerText = `${currentXp} / ${nextLevelXp} XP`;
+        }
+
+        // Fetch Weekly Target Goal
+        const { data: goal } = await supabaseClient.from('user_goals').select('*').eq('user_id', userId).single();
+        const weeklyTarget = goal ? goal.weekly_target : 15;
+
+        // Fetch Tasks & Subtasks
+        const { data: tasks } = await supabaseClient.from('tasks').select('*').eq('user_id', userId).eq('archived', false).order('user_task_num', { ascending: true });
+        const { data: subtasks } = await supabaseClient.from('subtasks').select('*').eq('user_id', userId);
+
+        allTasksData = tasks || [];
+        allSubtasksData = subtasks || [];
+
+        const doneCount = allTasksData.filter(t => t.completed).length;
+        document.getElementById('tasksDoneVal').innerText = doneCount;
+
+        const goalPct = Math.min(Math.round((doneCount / weeklyTarget) * 100), 100);
+        document.getElementById('goalPctText').innerText = `${goalPct}%`;
+        document.getElementById('goalFillBar').style.width = `${goalPct}%`;
+
+        renderTasks(allTasksData);
+        loadLeaderboard();
+
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+      }
+    }
+
+    function renderTasks(tasks) {
+      const container = document.getElementById('taskList');
+      if (!tasks || tasks.length === 0) {
+        container.innerHTML = `<div class="glass-card" style="text-align:center; color: var(--text-muted);">📭 No tasks found! Add some in bot chat using /add</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      tasks.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'task-card-premium';
+
+        const isDone = t.completed;
+        const prio = (t.priority || 'medium').toLowerCase();
+        const prioClass = `prio-${prio}`;
+        const prioLabel = prio.toUpperCase();
+
+        const taskSubtasks = allSubtasksData.filter(s => s.task_id === t.id);
+        let subtasksHtml = '';
+
+        if (taskSubtasks.length > 0) {
+          subtasksHtml = `<div class="subtasks-wrapper">` + taskSubtasks.map(s => `
+            <div class="subtask-item">
+              <div class="sub-check-box ${s.completed ? 'checked' : ''}" onclick="toggleSubtask(${s.id}, ${!s.completed})"></div>
+              <span style="${s.completed ? 'text-decoration:line-through; color: var(--text-dim);' : ''}">${s.title}</span>
+            </div>
+          `).join('') + `</div>`;
+        }
+
+        card.innerHTML = `
+          <div class="task-main-row">
+            <div class="task-left-content">
+              <div class="custom-checkbox ${isDone ? 'checked' : ''}" onclick="toggleTask(${t.user_task_num}, ${!isDone})"></div>
+              <span class="task-text ${isDone ? 'completed-text' : ''}">#${t.user_task_num} ${t.task}</span>
+            </div>
+            <span class="prio-badge ${prioClass}">${prioLabel}</span>
+          </div>
+          ${subtasksHtml}
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    async function toggleTask(num, isCompleted) {
+      haptic();
+      await supabaseClient.from('tasks').update({ completed: isCompleted }).eq('user_id', userId).eq('user_task_num', num);
+      loadDashboard();
+    }
+
+    async function toggleSubtask(id, isCompleted) {
+      haptic();
+      await supabaseClient.from('subtasks').update({ completed: isCompleted }).eq('id', id);
+      loadDashboard();
+    }
+
+    function filterTasks(type, el) {
+      haptic();
+      document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+
+      if (type === 'all') renderTasks(allTasksData);
+      else if (type === 'high') renderTasks(allTasksData.filter(t => (t.priority || 'medium').toLowerCase() === 'high'));
+      else if (type === 'recurring') renderTasks(allTasksData.filter(t => t.task_type === 'recurring'));
+      else if (type === 'completed') renderTasks(allTasksData.filter(t => t.completed));
+    }
+
+    function switchTab(viewId, el) {
+      haptic();
+      document.querySelectorAll('.dock-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById(viewId).classList.add('active');
+    }
+
+    async function loadLeaderboard() {
+      try {
+        const { data: users } = await supabaseClient.from('user_xp').select('*').order('total_xp', { ascending: false }).limit(5);
+        const listEl = document.getElementById('leaderboardList');
+        if (!users) return;
+
+        listEl.innerHTML = users.map((u, i) => `
+          <div class="glass-card" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="font-size:18px; font-weight:800; color:var(--accent-orange);">#${i + 1}</span>
+              <div>
+                <div style="font-weight:700;">Student ID: ${u.user_id}</div>
+                <div style="font-size:12px; color:var(--text-muted);">Level ${u.level || 1}</div>
+              </div>
+            </div>
+            <span style="font-weight:800; color:#38bdf8;">${(u.total_xp || 0).toLocaleString()} XP</span>
+          </div>
+        `).join('');
+      } catch(e) {}
+    }
+
+    // Pomodoro Timer Logic
+    let timerSeconds = 25 * 60;
+    let timerInterval = null;
+
+    function toggleTimer() {
+      haptic();
+      const btn = document.getElementById('btnStartTimer');
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.innerText = '▶ Resume';
+        btn.className = 'timer-action-btn btn-start';
+      } else {
+        btn.innerText = '⏸ Pause';
+        btn.className = 'timer-action-btn btn-pause';
+        timerInterval = setInterval(() => {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            btn.innerText = '🎉 Completed!';
+            haptic();
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      haptic();
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerSeconds = 25 * 60;
+      updateTimerDisplay();
+      const btn = document.getElementById('btnStartTimer');
+      btn.innerText = '▶ Start';
+      btn.className = 'timer-action-btn btn-start';
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+      const s = (timerSeconds % 60).toString().padStart(2, '0');
+      document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
