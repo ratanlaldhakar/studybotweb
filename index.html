@@ -3,41 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>StudyBot — Ultra Premium Mini App</title>
+  <title>StudyBot — Next-Gen Glassmorphism App</title>
   
   <!-- Telegram WebApp SDK & Supabase JS -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-  <!-- Modern Google Fonts -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --bg-dark: #090d16;
-      --card-bg: rgba(22, 30, 49, 0.65);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --card-glow: rgba(59, 130, 246, 0.12);
+      --bg-dark: #0a071b;
+      --glass-bg: rgba(255, 255, 255, 0.07);
+      --glass-bg-hover: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.16);
+      --glass-border-light: rgba(255, 255, 255, 0.28);
       
-      --primary: #3b82f6;
-      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #3b82f6 50%, #8b5cf6 100%);
-      --accent-emerald: #10b981;
-      --accent-orange: #f97316;
-      --accent-rose: #f43f5e;
-      --accent-purple: #a855f7;
+      --neon-cyan: #00f2fe;
+      --neon-blue: #4facfe;
+      --neon-purple: #7f00ff;
+      --neon-pink: #ff007f;
+      --neon-green: #00f5a0;
+      --neon-gold: #ffb199;
       
-      --text-main: #f8fafc;
+      --gradient-primary: linear-gradient(135deg, #7f00ff 0%, #e100ff 50%, #00f2fe 100%);
+      --gradient-card: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+      --gradient-glow: linear-gradient(135deg, rgba(127, 0, 255, 0.4) 0%, rgba(0, 242, 254, 0.4) 100%);
+      
+      --text-main: #ffffff;
+      --text-secondary: #cbd5e1;
       --text-muted: #94a3b8;
-      --text-dim: #64748b;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
@@ -45,693 +50,673 @@
     body {
       background-color: var(--bg-dark);
       color: var(--text-main);
-      padding: 16px 16px 90px 16px;
       min-height: 100vh;
       overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(127, 0, 255, 0.25) 0%, transparent 45%),
+        radial-gradient(circle at 90% 40%, rgba(0, 242, 254, 0.2) 0%, transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(255, 0, 127, 0.2) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    /* Mobile Frame Wrapper on Desktop so it never stretches unnaturally */
+    .app-viewport {
+      max-width: 460px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 16px 16px 100px 16px;
       position: relative;
+      background: rgba(10, 7, 27, 0.6);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 80px rgba(127, 0, 255, 0.25);
     }
 
-    /* Ambient Animated Glow Orbs in Background */
-    .glow-orb {
-      position: fixed;
+    /* Ambient Floating Glow Blobs */
+    .glow-blob {
+      position: absolute;
       border-radius: 50%;
-      filter: blur(90px);
-      z-index: -1;
+      filter: blur(70px);
+      z-index: 0;
       pointer-events: none;
-      opacity: 0.45;
-      animation: floatOrb 10s ease-in-out infinite alternate;
+      animation: floatPulse 8s ease-in-out infinite alternate;
     }
 
-    .glow-orb-1 {
-      width: 260px;
-      height: 260px;
-      background: #4f46e5;
-      top: -40px;
-      left: -40px;
+    .blob-1 { width: 200px; height: 200px; background: #7f00ff; top: -30px; left: -30px; }
+    .blob-2 { width: 220px; height: 220px; background: #00f2fe; top: 250px; right: -40px; animation-delay: -4s; }
+
+    @keyframes floatPulse {
+      0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+      100% { transform: scale(1.15) translate(20px, 20px); opacity: 0.8; }
     }
 
-    .glow-orb-2 {
-      width: 280px;
-      height: 280px;
-      background: #8b5cf6;
-      bottom: 10%;
-      right: -60px;
-      animation-delay: -5s;
-    }
+    .content-relative { position: relative; z-index: 1; }
 
-    @keyframes floatOrb {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(25px, 35px) scale(1.12); }
-    }
-
-    /* Top Glass Profile Header */
-    .profile-hero {
-      background: var(--card-bg);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--card-border);
+    /* Ultra Glass Card Base */
+    .glass-box {
+      background: var(--gradient-card);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
       border-radius: 24px;
       padding: 20px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+    }
+
+    /* Hero Profile Banner */
+    .profile-hero {
+      background: linear-gradient(135deg, rgba(127, 0, 255, 0.25) 0%, rgba(0, 242, 254, 0.15) 100%), var(--gradient-card);
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-top: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 28px;
+      padding: 22px;
       margin-bottom: 20px;
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 50px rgba(127, 0, 255, 0.3);
       position: relative;
       overflow: hidden;
     }
 
-    .profile-hero::before {
+    .profile-hero::after {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0; height: 3px;
-      background: var(--primary-gradient);
+      top: -50%; right: -50%;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+      pointer-events: none;
     }
 
-    .profile-row {
+    .profile-header-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .user-meta {
+    .user-info {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
 
-    .avatar-wrapper {
-      position: relative;
-    }
-
-    .avatar-box {
-      width: 54px;
-      height: 54px;
-      border-radius: 18px;
-      background: var(--primary-gradient);
+    .avatar-3d {
+      width: 58px;
+      height: 58px;
+      border-radius: 20px;
+      background: var(--gradient-primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 800;
-      color: white;
-      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+      color: #fff;
+      box-shadow: 0 8px 25px rgba(127, 0, 255, 0.6);
+      border: 2px solid rgba(255, 255, 255, 0.3);
     }
 
-    .online-indicator {
-      width: 13px;
-      height: 13px;
-      background: var(--accent-emerald);
-      border: 2.5px solid #0f172a;
-      border-radius: 50%;
-      position: absolute;
-      bottom: -2px; right: -2px;
-      box-shadow: 0 0 10px var(--accent-emerald);
+    .user-title-name {
+      font-size: 21px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.4px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     }
 
-    .user-title {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .level-badge {
+    .badge-level {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       font-size: 12px;
-      font-weight: 600;
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.12);
-      padding: 3px 10px;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      background: rgba(0, 242, 254, 0.15);
+      padding: 4px 12px;
       border-radius: 20px;
-      margin-top: 4px;
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      margin-top: 5px;
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
     }
 
-    .streak-box {
-      background: rgba(249, 115, 22, 0.12);
-      border: 1px solid rgba(249, 115, 22, 0.3);
-      border-radius: 16px;
-      padding: 8px 14px;
+    .streak-fire-card {
+      background: rgba(255, 113, 33, 0.18);
+      border: 1px solid rgba(255, 113, 33, 0.4);
+      border-radius: 20px;
+      padding: 10px 16px;
       text-align: center;
-      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+      box-shadow: 0 0 20px rgba(255, 113, 33, 0.25);
     }
 
-    .streak-val {
-      font-size: 22px;
+    .streak-num {
+      font-size: 24px;
       font-weight: 800;
-      color: var(--accent-orange);
+      color: #ff7121;
+      text-shadow: 0 0 10px rgba(255, 113, 33, 0.6);
       line-height: 1;
     }
 
-    .streak-sub {
+    .streak-text {
       font-size: 10px;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-weight: 700;
+      color: #ffd8c7;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
+      letter-spacing: 0.8px;
+      margin-top: 3px;
     }
 
-    /* XP Progress Bar in Profile */
-    .xp-progress-container {
-      margin-top: 16px;
+    /* XP Progress Bar */
+    .xp-section {
+      margin-top: 18px;
       padding-top: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    .xp-labels {
+    .xp-info-row {
       display: flex;
       justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .bar-fill-gradient {
+      height: 100%;
+      width: 0%;
+      background: var(--gradient-primary);
+      border-radius: 12px;
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.8);
+      transition: width 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Stats 2 Grid */
+    .stats-2-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card-glass {
+      background: var(--gradient-card);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-label-title {
       font-size: 12px;
       font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 6px;
     }
 
-    .xp-bar-track {
-      width: 100%;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .xp-bar-fill {
-      height: 100%;
-      width: 65%;
-      background: var(--primary-gradient);
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
-      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    /* Quick Stats 2x2 Grid */
-    .stats-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .glass-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-      position: relative;
-      transition: transform 0.2s ease, border-color 0.2s;
-    }
-
-    .glass-card:active {
-      transform: scale(0.98);
-    }
-
-    .stat-icon {
-      font-size: 20px;
-      margin-bottom: 8px;
-      display: inline-block;
-    }
-
-    .stat-number {
-      font-size: 24px;
+    .stat-val-neon {
+      font-size: 26px;
       font-weight: 800;
-      color: var(--text-main);
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       letter-spacing: -0.5px;
     }
 
-    .stat-desc {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-weight: 500;
-      margin-top: 2px;
-    }
-
-    /* Weekly Goal Widget */
-    .weekly-goal-card {
-      background: var(--card-bg);
+    /* Weekly Goal Card */
+    .weekly-card-glow {
+      background: linear-gradient(135deg, rgba(0, 245, 160, 0.12) 0%, rgba(0, 242, 254, 0.08) 100%), var(--gradient-card);
       backdrop-filter: blur(24px);
-      border: 1px solid var(--card-border);
-      border-radius: 22px;
-      padding: 18px;
-      margin-bottom: 24px;
-      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 245, 160, 0.3);
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 22px;
+      box-shadow: 0 12px 35px rgba(0, 245, 160, 0.15);
     }
 
-    .goal-top {
+    .weekly-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
     }
 
-    .goal-title {
+    .weekly-title {
       font-size: 15px;
       font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      color: #fff;
     }
 
-    .goal-percent {
-      font-size: 16px;
+    .pct-badge-emerald {
+      font-size: 15px;
       font-weight: 800;
-      color: var(--accent-emerald);
-      background: rgba(16, 185, 129, 0.12);
-      padding: 3px 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: var(--neon-green);
+      background: rgba(0, 245, 160, 0.18);
+      padding: 4px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(0, 245, 160, 0.4);
+      box-shadow: 0 0 14px rgba(0, 245, 160, 0.3);
     }
 
-    .goal-track {
+    .goal-track-emerald {
       width: 100%;
       height: 12px;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.4);
       border-radius: 12px;
       overflow: hidden;
-      position: relative;
     }
 
-    .goal-fill {
+    .goal-fill-emerald {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+      background: linear-gradient(90deg, #00f5a0 0%, #00f2fe 100%);
       border-radius: 12px;
-      box-shadow: 0 0 14px rgba(16, 185, 129, 0.5);
+      box-shadow: 0 0 16px rgba(0, 245, 160, 0.7);
       transition: width 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    /* Section Filters Pill Row */
-    .filter-scroll {
+    /* Filter Pills Horizontal Scroll Bar */
+    .pills-container {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       overflow-x: auto;
-      padding-bottom: 8px;
-      margin-bottom: 14px;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
       scrollbar-width: none;
     }
+    .pills-container::-webkit-scrollbar { display: none; }
 
-    .filter-scroll::-webkit-scrollbar { display: none; }
-
-    .pill-btn {
-      padding: 8px 16px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
+    .pill-btn-neon {
+      padding: 10px 18px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       white-space: nowrap;
       cursor: pointer;
       transition: all 0.25s ease;
     }
 
-    .pill-btn.active {
-      background: var(--primary-gradient);
-      color: white;
+    .pill-btn-neon.active {
+      background: var(--gradient-primary);
+      color: #fff;
       border-color: transparent;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 6px 20px rgba(127, 0, 255, 0.5);
     }
 
-    /* Tasks List Container */
-    .task-card-premium {
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
+    /* Tasks Cards */
+    .task-card-vibrant {
+      background: var(--gradient-card);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      border-radius: 22px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      transition: all 0.25s ease;
     }
 
-    .task-card-premium:hover {
-      border-color: rgba(99, 102, 241, 0.3);
-      box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.15);
+    .task-card-vibrant:active {
+      transform: scale(0.98);
     }
 
-    .task-main-row {
+    .task-row-flex {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .task-left-content {
+    .task-left-group {
       display: flex;
       align-items: center;
       gap: 14px;
       flex: 1;
     }
 
-    /* Custom Animated Checkbox */
-    .custom-checkbox {
-      width: 24px;
-      height: 24px;
-      border-radius: 8px;
-      border: 2px solid rgba(255, 255, 255, 0.25);
+    /* Custom Checkbox */
+    .glow-checkbox {
+      width: 26px;
+      height: 26px;
+      border-radius: 9px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
       flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.04);
     }
 
-    .custom-checkbox.checked {
-      background: var(--accent-emerald);
-      border-color: var(--accent-emerald);
-      box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+    .glow-checkbox.checked {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      box-shadow: 0 0 16px rgba(0, 245, 160, 0.8);
     }
 
-    .custom-checkbox.checked::after {
+    .glow-checkbox.checked::after {
       content: '✓';
-      color: white;
-      font-size: 15px;
-      font-weight: 800;
-    }
-
-    .task-text {
+      color: #09071b;
       font-size: 16px;
-      font-weight: 600;
-      color: var(--text-main);
-      transition: color 0.2s;
+      font-weight: 900;
     }
 
-    .task-text.completed-text {
-      text-decoration: line-through;
-      color: var(--text-dim);
-    }
-
-    .prio-badge {
-      font-size: 11px;
+    .task-title-text {
+      font-size: 16px;
       font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 12px;
+      color: #fff;
+    }
+
+    .task-title-text.completed-strikethrough {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    /* Priority Badges */
+    .prio-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 14px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
     }
 
     .prio-high {
-      background: rgba(244, 63, 94, 0.15);
-      color: #fb7185;
-      border: 1px solid rgba(244, 63, 94, 0.3);
+      background: rgba(255, 0, 127, 0.2);
+      color: #ff4da6;
+      border: 1px solid rgba(255, 0, 127, 0.4);
+      box-shadow: 0 0 12px rgba(255, 0, 127, 0.25);
     }
 
     .prio-medium {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fcd34d;
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: rgba(255, 177, 153, 0.2);
+      color: #ffb199;
+      border: 1px solid rgba(255, 177, 153, 0.4);
     }
 
     .prio-low {
-      background: rgba(16, 185, 129, 0.15);
-      color: #6ee7b7;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(0, 245, 160, 0.18);
+      color: #00f5a0;
+      border: 1px solid rgba(0, 245, 160, 0.3);
     }
 
-    /* Subtasks Accordion Inside Card */
-    .subtasks-wrapper {
+    /* Subtasks Box */
+    .subtasks-container {
       margin-top: 14px;
       padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .subtask-item {
+    .subtask-single-row {
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 6px 0;
       font-size: 14px;
+      color: var(--text-secondary);
     }
 
-    .sub-check-box {
+    .sub-glow-check {
       width: 18px;
       height: 18px;
-      border-radius: 5px;
-      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
     }
 
-    .sub-check-box.checked {
-      background: var(--primary);
-      border-color: var(--primary);
+    .sub-glow-check.checked {
+      background: var(--neon-cyan);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
     }
 
-    .sub-check-box.checked::after {
+    .sub-glow-check.checked::after {
       content: '✓';
-      color: white;
+      color: #000;
       font-size: 11px;
-      font-weight: 700;
-    }
-
-    /* Study Timer Card (Focus Mode) */
-    .timer-container {
-      background: var(--card-bg);
-      backdrop-filter: blur(24px);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
-      padding: 24px;
-      text-align: center;
-      margin-bottom: 20px;
-      box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
-    }
-
-    .timer-display {
-      font-size: 52px;
       font-weight: 800;
-      letter-spacing: -1px;
-      background: var(--primary-gradient);
+    }
+
+    /* Study Focus Timer */
+    .timer-card-center {
+      background: var(--gradient-card);
+      backdrop-filter: blur(28px);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      border-radius: 28px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5);
+    }
+
+    .timer-clock-val {
+      font-size: 58px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      background: linear-gradient(135deg, #00f2fe 0%, #7f00ff 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin: 16px 0;
+      margin: 20px 0;
+      text-shadow: 0 10px 30px rgba(0, 242, 254, 0.4);
     }
 
-    .timer-btn-row {
+    .timer-actions {
       display: flex;
       justify-content: center;
-      gap: 12px;
+      gap: 14px;
     }
 
-    .timer-action-btn {
-      padding: 12px 24px;
-      border-radius: 16px;
-      font-weight: 700;
-      font-size: 15px;
+    .btn-gradient {
+      padding: 14px 28px;
+      border-radius: 20px;
+      font-size: 16px;
+      font-weight: 800;
       border: none;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-      transition: transform 0.2s;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      transition: all 0.25s ease;
     }
 
-    .timer-action-btn:active { transform: scale(0.95); }
+    .btn-green-glow { background: linear-gradient(135deg, #00f5a0 0%, #00d2ff 100%); color: #09071b; }
+    .btn-orange-glow { background: linear-gradient(135deg, #ff7121 0%, #ff007f 100%); color: #fff; }
+    .btn-glass-sub { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); border: 1px solid var(--glass-border); }
 
-    .btn-start { background: var(--accent-emerald); color: white; }
-    .btn-pause { background: var(--accent-orange); color: white; }
-    .btn-reset { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
-
-    /* Bottom Floating Dock Bar */
-    .bottom-dock {
+    /* Bottom Floating Glass Dock Navigation */
+    .dock-container {
       position: fixed;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 24px;
-      padding: 8px 12px;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 420px;
+      background: rgba(15, 11, 38, 0.85);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-top: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 28px;
+      padding: 8px;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-      z-index: 1000;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(127, 0, 255, 0.2);
+      z-index: 9999;
     }
 
-    .dock-tab {
+    .dock-item-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
-      color: var(--text-dim);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 8px 16px;
-      border-radius: 16px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 20px;
       cursor: pointer;
       transition: all 0.25s ease;
     }
 
-    .dock-tab.active {
-      color: white;
-      background: rgba(99, 102, 241, 0.2);
+    .dock-item-btn.active {
+      color: #fff;
+      background: var(--gradient-primary);
+      box-shadow: 0 6px 20px rgba(127, 0, 255, 0.5);
     }
 
-    .dock-icon {
-      font-size: 20px;
-    }
+    .dock-icon-size { font-size: 20px; }
 
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* Skeleton Loading State */
-    .skeleton-box {
-      height: 70px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 18px;
-      margin-bottom: 12px;
-      animation: pulseSkeleton 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulseSkeleton {
-      0% { opacity: 0.4; }
-      50% { opacity: 0.8; }
-      100% { opacity: 0.4; }
-    }
+    .tab-view-block { display: none; }
+    .tab-view-block.active { display: block; }
   </style>
 </head>
 <body>
 
-  <!-- Ambient Glow Background Orbs -->
-  <div class="glow-orb glow-orb-1"></div>
-  <div class="glow-orb glow-orb-2"></div>
+  <!-- Mobile Container Viewport for Desktop Screens -->
+  <div class="app-viewport">
+    
+    <!-- Background Glow Blobs -->
+    <div class="glow-blob blob-1"></div>
+    <div class="glow-blob blob-2"></div>
 
-  <!-- Profile Hero Banner -->
-  <div class="profile-hero">
-    <div class="profile-row">
-      <div class="user-meta">
-        <div class="avatar-wrapper">
-          <div class="avatar-box" id="userAvatar">S</div>
-          <div class="online-indicator"></div>
-        </div>
-        <div>
-          <div class="user-title" id="userName">Student</div>
-          <div class="level-badge" id="userLevel">💎 Level 1 Scholar</div>
-        </div>
-      </div>
-      <div class="streak-box">
-        <div class="streak-val" id="streakCount">🔥 0</div>
-        <div class="streak-sub">Days</div>
-      </div>
-    </div>
-
-    <div class="xp-progress-container">
-      <div class="xp-labels">
-        <span>Level Progress</span>
-        <span id="xpText">0 / 100 XP</span>
-      </div>
-      <div class="xp-bar-track">
-        <div class="xp-bar-fill" id="xpBarFill" style="width: 0%;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Views Container -->
-  <div id="viewTasks" class="tab-content active">
-
-    <!-- Quick Stats Grid -->
-    <div class="stats-row">
-      <div class="glass-card">
-        <span class="stat-icon">⚡</span>
-        <div class="stat-number" id="totalXpVal">0</div>
-        <div class="stat-desc">Total XP Earned</div>
-      </div>
-      <div class="glass-card">
-        <span class="stat-icon">🎯</span>
-        <div class="stat-number" id="tasksDoneVal">0</div>
-        <div class="stat-desc">Tasks Completed</div>
-      </div>
-    </div>
-
-    <!-- Weekly Target Progress Card -->
-    <div class="weekly-goal-card">
-      <div class="goal-top">
-        <span class="goal-title">🎯 Weekly Target Goal</span>
-        <span class="goal-percent" id="goalPctText">0%</span>
-      </div>
-      <div class="goal-track">
-        <div class="goal-fill" id="goalFillBar"></div>
-      </div>
-    </div>
-
-    <!-- Filter Pills Row -->
-    <div class="filter-scroll">
-      <button class="pill-btn active" onclick="filterTasks('all', this)">All Tasks</button>
-      <button class="pill-btn" onclick="filterTasks('high', this)">🔴 High Priority</button>
-      <button class="pill-btn" onclick="filterTasks('recurring', this)">🔄 Routines</button>
-      <button class="pill-btn" onclick="filterTasks('completed', this)">✅ Done</button>
-    </div>
-
-    <!-- Task List Container -->
-    <div id="taskList">
-      <div class="skeleton-box"></div>
-      <div class="skeleton-box"></div>
-      <div class="skeleton-box"></div>
-    </div>
-
-  </div>
-
-  <!-- Study Timer View -->
-  <div id="viewTimer" class="tab-content">
-    <div class="timer-container">
-      <h2 style="font-size: 20px; font-weight: 700;">⏱️ Focus Study Timer</h2>
-      <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Pomodoro Focus Session</p>
+    <div class="content-relative">
       
-      <div class="timer-display" id="timerDisplay">25:00</div>
+      <!-- Hero Profile Header -->
+      <div class="profile-hero">
+        <div class="profile-header-row">
+          <div class="user-info">
+            <div class="avatar-3d" id="userAvatar">S</div>
+            <div>
+              <div class="user-title-name" id="userName">Student</div>
+              <div class="badge-level" id="userLevel">💎 Level 1 Scholar</div>
+            </div>
+          </div>
+          <div class="streak-fire-card">
+            <div class="streak-num" id="streakCount">🔥 0</div>
+            <div class="streak-text">Days</div>
+          </div>
+        </div>
 
-      <div class="timer-btn-row">
-        <button class="timer-action-btn btn-start" id="btnStartTimer" onclick="toggleTimer()">▶ Start</button>
-        <button class="timer-action-btn btn-reset" onclick="resetTimer()">🔄 Reset</button>
+        <div class="xp-section">
+          <div class="xp-info-row">
+            <span>Level Progress</span>
+            <span id="xpText">0 / 100 XP</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill-gradient" id="xpBarFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab View 1: Tasks -->
+      <div id="viewTasks" class="tab-view-block active">
+
+        <!-- Stats 2 Grid -->
+        <div class="stats-2-grid">
+          <div class="stat-card-glass">
+            <div class="stat-label-title">⚡ Total XP</div>
+            <div class="stat-val-neon" id="totalXpVal">0</div>
+          </div>
+          <div class="stat-card-glass">
+            <div class="stat-label-title">🎯 Completed</div>
+            <div class="stat-val-neon" id="tasksDoneVal">0</div>
+          </div>
+        </div>
+
+        <!-- Weekly Target Progress -->
+        <div class="weekly-card-glow">
+          <div class="weekly-top">
+            <span class="weekly-title">🎯 Weekly Target Goal</span>
+            <span class="pct-badge-emerald" id="goalPctText">0%</span>
+          </div>
+          <div class="goal-track-emerald">
+            <div class="goal-fill-emerald" id="goalFillBar"></div>
+          </div>
+        </div>
+
+        <!-- Filter Pills Scroll -->
+        <div class="pills-container">
+          <button class="pill-btn-neon active" onclick="filterTasks('all', this)">All Tasks</button>
+          <button class="pill-btn-neon" onclick="filterTasks('high', this)">🔴 High Priority</button>
+          <button class="pill-btn-neon" onclick="filterTasks('recurring', this)">🔄 Routines</button>
+          <button class="pill-btn-neon" onclick="filterTasks('completed', this)">✅ Completed</button>
+        </div>
+
+        <!-- Task List -->
+        <div id="taskList">
+          <div class="glass-box" style="text-align: center; color: var(--text-muted);">⚡ Connecting to Supabase database…</div>
+        </div>
+
+      </div>
+
+      <!-- Tab View 2: Timer -->
+      <div id="viewTimer" class="tab-view-block">
+        <div class="timer-card-center">
+          <h2 style="font-size: 22px; font-weight: 800; color: #fff;">⏱️ Focus Study Timer</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Pomodoro Focus Session</p>
+          
+          <div class="timer-clock-val" id="timerDisplay">25:00</div>
+
+          <div class="timer-actions">
+            <button class="btn-gradient btn-green-glow" id="btnStartTimer" onclick="toggleTimer()">▶ Start</button>
+            <button class="btn-gradient btn-glass-sub" onclick="resetTimer()">🔄 Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab View 3: Rankings -->
+      <div id="viewRank" class="tab-view-block">
+        <div class="glass-box" style="text-align: center; margin-bottom: 14px;">
+          <h2 style="font-size: 20px; font-weight: 800;">🏆 Student Leaderboard</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Top active study champions</p>
+        </div>
+        <div id="leaderboardList"></div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Glass Dock Navigation -->
+    <div class="dock-container">
+      <div class="dock-item-btn active" onclick="switchTab('viewTasks', this)">
+        <span class="dock-icon-size">📋</span>
+        <span>Tasks</span>
+      </div>
+      <div class="dock-item-btn" onclick="switchTab('viewTimer', this)">
+        <span class="dock-icon-size">⏱️</span>
+        <span>Timer</span>
+      </div>
+      <div class="dock-item-btn" onclick="switchTab('viewRank', this)">
+        <span class="dock-icon-size">🏆</span>
+        <span>Rankings</span>
       </div>
     </div>
-  </div>
 
-  <!-- Leaderboard View -->
-  <div id="viewRank" class="tab-content">
-    <div class="glass-card" style="margin-bottom: 14px; text-align: center;">
-      <h2 style="font-size: 18px; font-weight: 700;">🏆 Student Leaderboard</h2>
-      <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Top active study champions</p>
-    </div>
-    <div id="leaderboardList">
-      <div class="skeleton-box"></div>
-      <div class="skeleton-box"></div>
-    </div>
-  </div>
-
-  <!-- Bottom Floating Dock Navigation -->
-  <div class="bottom-dock">
-    <div class="dock-tab active" onclick="switchTab('viewTasks', this)">
-      <span class="dock-icon">📋</span>
-      <span>Tasks</span>
-    </div>
-    <div class="dock-tab" onclick="switchTab('viewTimer', this)">
-      <span class="dock-icon">⏱️</span>
-      <span>Timer</span>
-    </div>
-    <div class="dock-tab" onclick="switchTab('viewRank', this)">
-      <span class="dock-icon">🏆</span>
-      <span>Rankings</span>
-    </div>
   </div>
 
   <script>
-    // Initialize Telegram WebApp SDK
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Supabase Configuration
     const SUPABASE_URL = "https://kgfbwcchftywjhkdqqxn.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnZmJ3Y2NoZnR5d2poa2RxcXhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4MjYxNjMsImV4cCI6MjA5OTQwMjE2M30.LwpTocZwf-0SayLgQgRP974-d5VlRy2OiGRUVrj_Gm0";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let userId = 5774713642; // Default fallback ID
+    let userId = 5774713642;
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       const u = tg.initDataUnsafe.user;
       userId = u.id;
@@ -742,7 +727,6 @@
     let allTasksData = [];
     let allSubtasksData = [];
 
-    // Trigger Telegram Haptic Vibration Feedback
     function haptic() {
       try {
         if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
@@ -751,7 +735,6 @@
 
     async function loadDashboard() {
       try {
-        // Fetch XP & Level
         const { data: xp } = await supabaseClient.from('user_xp').select('*').eq('user_id', userId).single();
         if (xp) {
           document.getElementById('totalXpVal').innerText = (xp.total_xp || 0).toLocaleString();
@@ -763,11 +746,9 @@
           document.getElementById('xpText').innerText = `${currentXp} / ${nextLevelXp} XP`;
         }
 
-        // Fetch Weekly Target Goal
         const { data: goal } = await supabaseClient.from('user_goals').select('*').eq('user_id', userId).single();
         const weeklyTarget = goal ? goal.weekly_target : 15;
 
-        // Fetch Tasks & Subtasks
         const { data: tasks } = await supabaseClient.from('tasks').select('*').eq('user_id', userId).eq('archived', false).order('user_task_num', { ascending: true });
         const { data: subtasks } = await supabaseClient.from('subtasks').select('*').eq('user_id', userId);
 
@@ -792,14 +773,14 @@
     function renderTasks(tasks) {
       const container = document.getElementById('taskList');
       if (!tasks || tasks.length === 0) {
-        container.innerHTML = `<div class="glass-card" style="text-align:center; color: var(--text-muted);">📭 No tasks found! Add some in bot chat using /add</div>`;
+        container.innerHTML = `<div class="glass-box" style="text-align:center; color: var(--text-muted);">📭 No tasks found! Add some in bot chat using /add</div>`;
         return;
       }
 
       container.innerHTML = '';
       tasks.forEach(t => {
         const card = document.createElement('div');
-        card.className = 'task-card-premium';
+        card.className = 'task-card-vibrant';
 
         const isDone = t.completed;
         const prio = (t.priority || 'medium').toLowerCase();
@@ -810,21 +791,21 @@
         let subtasksHtml = '';
 
         if (taskSubtasks.length > 0) {
-          subtasksHtml = `<div class="subtasks-wrapper">` + taskSubtasks.map(s => `
-            <div class="subtask-item">
-              <div class="sub-check-box ${s.completed ? 'checked' : ''}" onclick="toggleSubtask(${s.id}, ${!s.completed})"></div>
-              <span style="${s.completed ? 'text-decoration:line-through; color: var(--text-dim);' : ''}">${s.title}</span>
+          subtasksHtml = `<div class="subtasks-container">` + taskSubtasks.map(s => `
+            <div class="subtask-single-row">
+              <div class="sub-glow-check ${s.completed ? 'checked' : ''}" onclick="toggleSubtask(${s.id}, ${!s.completed})"></div>
+              <span style="${s.completed ? 'text-decoration:line-through; color: var(--text-muted);' : ''}">${s.title}</span>
             </div>
           `).join('') + `</div>`;
         }
 
         card.innerHTML = `
-          <div class="task-main-row">
-            <div class="task-left-content">
-              <div class="custom-checkbox ${isDone ? 'checked' : ''}" onclick="toggleTask(${t.user_task_num}, ${!isDone})"></div>
-              <span class="task-text ${isDone ? 'completed-text' : ''}">#${t.user_task_num} ${t.task}</span>
+          <div class="task-row-flex">
+            <div class="task-left-group">
+              <div class="glow-checkbox ${isDone ? 'checked' : ''}" onclick="toggleTask(${t.user_task_num}, ${!isDone})"></div>
+              <span class="task-title-text ${isDone ? 'completed-strikethrough' : ''}">#${t.user_task_num} ${t.task}</span>
             </div>
-            <span class="prio-badge ${prioClass}">${prioLabel}</span>
+            <span class="prio-pill ${prioClass}">${prioLabel}</span>
           </div>
           ${subtasksHtml}
         `;
@@ -847,7 +828,7 @@
 
     function filterTasks(type, el) {
       haptic();
-      document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.pill-btn-neon').forEach(btn => btn.classList.remove('active'));
       el.classList.add('active');
 
       if (type === 'all') renderTasks(allTasksData);
@@ -858,8 +839,8 @@
 
     function switchTab(viewId, el) {
       haptic();
-      document.querySelectorAll('.dock-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.dock-item-btn').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-view-block').forEach(c => c.classList.remove('active'));
       el.classList.add('active');
       document.getElementById(viewId).classList.add('active');
     }
@@ -871,21 +852,20 @@
         if (!users) return;
 
         listEl.innerHTML = users.map((u, i) => `
-          <div class="glass-card" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <div class="glass-box" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
             <div style="display:flex; align-items:center; gap:12px;">
-              <span style="font-size:18px; font-weight:800; color:var(--accent-orange);">#${i + 1}</span>
+              <span style="font-size:18px; font-weight:800; color:var(--neon-gold);">#${i + 1}</span>
               <div>
-                <div style="font-weight:700;">Student ID: ${u.user_id}</div>
+                <div style="font-weight:700; color:#fff;">Student ID: ${u.user_id}</div>
                 <div style="font-size:12px; color:var(--text-muted);">Level ${u.level || 1}</div>
               </div>
             </div>
-            <span style="font-weight:800; color:#38bdf8;">${(u.total_xp || 0).toLocaleString()} XP</span>
+            <span style="font-weight:800; color:var(--neon-cyan);">${(u.total_xp || 0).toLocaleString()} XP</span>
           </div>
         `).join('');
       } catch(e) {}
     }
 
-    // Pomodoro Timer Logic
     let timerSeconds = 25 * 60;
     let timerInterval = null;
 
@@ -896,10 +876,10 @@
         clearInterval(timerInterval);
         timerInterval = null;
         btn.innerText = '▶ Resume';
-        btn.className = 'timer-action-btn btn-start';
+        btn.className = 'btn-gradient btn-green-glow';
       } else {
         btn.innerText = '⏸ Pause';
-        btn.className = 'timer-action-btn btn-pause';
+        btn.className = 'btn-gradient btn-orange-glow';
         timerInterval = setInterval(() => {
           if (timerSeconds > 0) {
             timerSeconds--;
@@ -922,7 +902,7 @@
       updateTimerDisplay();
       const btn = document.getElementById('btnStartTimer');
       btn.innerText = '▶ Start';
-      btn.className = 'timer-action-btn btn-start';
+      btn.className = 'btn-gradient btn-green-glow';
     }
 
     function updateTimerDisplay() {
